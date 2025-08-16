@@ -151,45 +151,23 @@ if ('serviceWorker' in navigator) {
         muteBtn=document.getElementById("muteBtn");
 
   function deck(){return mode==="colors"?COLORS:mode==="letters"?LETTERS:mode==="numbers"?NUMBERS:mode==="shapes"?SHAPES:FAVORITES;}
-  function speak(txt){ if(muted) return; if(!("speechSynthesis" in window))return; try { let u=new SpeechSynthesisUtterance(txt); u.rate=0.9; window.speechSynthesis.cancel(); window.speechSynthesis.speak(u);}catch(e){} }
+  function speak(txt){ if(muted) return; if(!("speechSynthesis" in window))return; try { let u=new SpeechSynthesisUtterance(txt); u.rate=0.7; window.speechSynthesis.cancel(); window.speechSynthesis.speak(u);}catch(e){} }
   function render(){
     const d=deck(); if(index<0) index=d.length-1; if(index>=d.length) index=0;
     const item=d[index]; card.classList.toggle("flipped",flipped);
+    ifif(flipped){
     if(mode==="colors"){
-      appTitle.textContent="Flashcards: Colors";
-      document.querySelectorAll('.seg button').forEach(b=>b.setAttribute('aria-pressed', b.dataset.mode==='colors'?'true':'false'));
-      front.style.background=item.hex; front.innerHTML=`<div class="big-text" style="color:${getTextColor(item.hex)}">${item.name}</div>`;
-      back.style.background="var(--card)"; back.innerHTML=`<div class="emoji">${item.emoji}</div><div class="sub">${item.object}</div>`;
-      speak(flipped?`${item.name}, ${item.object}`:item.name);
+        speak(item.name);
+    } else if(mode==="letters"){
+        speak(`${item.letter} is for ${item.word}`);
+    } else if(mode==="numbers"){
+        speak(item.word);
+    } else if(mode==="shapes"){
+        speak(item.shape);
+    } else if(mode==="favorites"){
+        speak(item.name);
     }
-    else if(mode==="letters"){
-      appTitle.textContent="Flashcards: Letters";
-      document.querySelectorAll('.seg button').forEach(b=>b.setAttribute('aria-pressed', b.dataset.mode==='letters'?'true':'false'));
-      front.style.background="var(--card)"; front.innerHTML=`<div class="big-text">${item.letter}</div><div class="sub">${item.letter.toLowerCase()}</div>`;
-      back.style.background="var(--card)"; back.innerHTML=`<div class="emoji">${item.emoji}</div><div class="sub">${item.word}</div>`;
-      speak(flipped?`${item.letter} is for ${item.word}`:item.letter);
-    }
-    else if(mode==="numbers"){
-      appTitle.textContent="Flashcards: Numbers";
-      document.querySelectorAll('.seg button').forEach(b=>b.setAttribute('aria-pressed', b.dataset.mode==='numbers'?'true':'false'));
-      front.style.background="var(--card)"; front.innerHTML=`<div class="big-text">${item.num}</div>`;
-      back.style.background="var(--card)"; back.innerHTML=`<div class="emoji">${item.emoji}</div><div class="sub">${item.word}</div>`;
-      speak(flipped?item.word:item.num);
-    }
-    else if(mode==="shapes"){
-      appTitle.textContent="Flashcards: Shapes";
-      document.querySelectorAll('.seg button').forEach(b=>b.setAttribute('aria-pressed', b.dataset.mode==='shapes'?'true':'false'));
-      front.style.background="var(--card)"; front.innerHTML=`<div class="big-text">${item.shape}</div>`;
-      back.style.background="var(--card)"; back.innerHTML=`<div class="emoji">${item.emoji}</div>`;
-      speak(item.shape);
-    }
-    else {
-      appTitle.textContent="Flashcards: Favorites";
-      document.querySelectorAll('.seg button').forEach(b=>b.setAttribute('aria-pressed', b.dataset.mode==='favorites'?'true':'false'));
-      front.style.background="var(--card)"; front.innerHTML=`<div class="big-text">${item.name}</div>`;
-      back.style.background="var(--card)"; back.innerHTML=`<div class="emoji">${item.emoji}</div>`;
-      speak(item.name);
-    }
+}
     muteBtn.textContent=muted?"🔇":"🔊";
   }
 
