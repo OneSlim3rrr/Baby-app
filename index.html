@@ -14,25 +14,86 @@ body {
   font-family: "Comic Sans MS", "Fredoka One", sans-serif;
   background: #f0f9ff;
   display: flex;
-  justify-content: center;
+  flex-direction: column;
   align-items: center;
-  height: 100vh;
+  justify-content: flex-start;
   margin: 0;
+  padding: 0;
+  min-height: 100vh;
 }
 
-.flashcard, .card {
-  width: 90%;
-  height: 70%;
+header {
+  width: 100%;
+  padding: 5px 10px;
+  box-sizing: border-box;
+}
+
+header .row {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 5px;
+}
+
+header .title {
+  font-size: 1.3rem;
+  flex: 1 1 auto;
+  text-align: center;
+  min-width: 120px;
+}
+
+header .seg {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  justify-content: center;
+  flex: 2 1 auto;
+}
+
+header .seg button {
+  font-size: 0.9rem;
+  padding: 5px 8px;
+  min-width: 45px;
+}
+
+header button#muteBtn {
+  font-size: 1.2rem;
+  padding: 5px 10px;
+}
+
+.stage {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 1;
+  width: 100%;
+  max-width: 600px;
+}
+
+.card-wrap {
+  width: 90vw;
+  max-width: 500px;
+  height: 60vh;
+  max-height: 500px;
+  position: relative;
+  margin: 10px 0;
+}
+
+.card {
+  width: 100%;
+  height: 100%;
   border-radius: 25px;
   box-shadow: 0 8px 16px rgba(0,0,0,0.2);
   display: flex;
   justify-content: center;
   align-items: center;
-  font-size: 8rem;
+  font-size: calc(6rem + 2vw);
   font-weight: bold;
   color: #333;
   transition: transform 0.4s ease, background 0.3s ease;
   cursor: pointer;
+  position: relative;
 }
 
 .card.flipped .front { display: none; }
@@ -52,33 +113,50 @@ body {
 
 .face.back { display: none; background: #fff; }
 
-button {
-  font-size: 2rem;
-  border: none;
-  background: #4cafef;
-  color: white;
-  border-radius: 50%;
-  width: 80px;
-  height: 80px;
-  margin: 10px;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 5px;
+  margin-bottom: 10px;
+}
+
+.controls button {
+  font-size: 1.5rem;
+  width: 60px;
+  height: 60px;
+  padding: 5px;
 }
 
 button:active { background: #0077cc; }
-.big-text { font-size: 6rem; text-align: center; padding: 0 10px; }
+
+.big-text { font-size: calc(4rem + 2vw); text-align: center; padding: 0 10px; }
+
+footer {
+  font-size: 0.8rem;
+  padding: 5px;
+  text-align: center;
+}
+
+@media (max-width: 400px) {
+  header .title { font-size: 1rem; }
+  header .seg button { font-size: 0.7rem; padding: 3px 5px; min-width: 35px; }
+  header button#muteBtn { font-size: 1rem; padding: 3px 5px; }
+  .controls button { font-size: 1.2rem; width: 50px; height: 50px; }
+  .big-text { font-size: 3rem; }
+}
 </style>
 </head>
 <body>
 <header>
   <div class="row">
     <div class="title" id="appTitle">Flashcards: Colors</div>
-    <div class="spacer"></div>
     <div class="seg" role="group">
-      <button data-mode="colors" aria-pressed="true">Colors</button>
-      <button data-mode="letters" aria-pressed="false">Letters</button>
-      <button data-mode="numbers" aria-pressed="false">Numbers</button>
-      <button data-mode="shapes" aria-pressed="false">Shapes</button>
-      <button data-mode="favorites" aria-pressed="false">Favorites</button>
+      <button data-mode="colors" aria-pressed="true">🎨</button>
+      <button data-mode="letters" aria-pressed="false">🔤</button>
+      <button data-mode="numbers" aria-pressed="false">🔢</button>
+      <button data-mode="shapes" aria-pressed="false">⬛</button>
+      <button data-mode="favorites" aria-pressed="false">⭐</button>
     </div>
     <button id="muteBtn" aria-pressed="false" title="Toggle sound">🔊</button>
   </div>
@@ -92,16 +170,16 @@ button:active { background: #0077cc; }
       </div>
     </div>
     <div class="controls">
-      <button id="prevBtn" class="wide">⟵ Prev</button>
-      <button id="flipBtn" class="wide">Flip</button>
-      <button id="nextBtn" class="wide">Next ⟶</button>
-      <button id="shuffleBtn" class="wide">Shuffle</button>
-      <button id="autoplayBtn" class="tall">Auto Play</button>
-      <button id="fullscreenBtn" class="tall">Full Screen</button>
+      <button id="prevBtn">⟵</button>
+      <button id="flipBtn">🔄</button>
+      <button id="nextBtn">⟶</button>
+      <button id="shuffleBtn">🔀</button>
+      <button id="autoplayBtn">▶️</button>
+      <button id="fullscreenBtn">⛶</button>
     </div>
   </div>
 </main>
-<footer>Tap the card to flip. Swipe or use buttons. Install from Safari via “Add to Home Screen”.</footer>
+<footer>Tap the card to flip. Swipe or use buttons. Add to Home Screen via Safari.</footer>
 
 <script>
 // Register Service Worker
@@ -112,37 +190,11 @@ if ('serviceWorker' in navigator) {
 }
 
 (function(){
-  const COLORS=[
-    {name:"Red",hex:"#ff3b30"},{name:"Blue",hex:"#007aff"},{name:"Yellow",hex:"#ffcc00"},
-    {name:"Green",hex:"#34c759"},{name:"Orange",hex:"#ff9500"},{name:"Purple",hex:"#af52de"},
-    {name:"Pink",hex:"#ff2d55"},{name:"Brown",hex:"#8b5e3c"},{name:"Black",hex:"#000000"},
-    {name:"White",hex:"#ffffff"}
-  ];
-  const LETTERS=[
-    {letter:"A",word:"Apple"},{letter:"B",word:"Bear"},{letter:"C",word:"Cat"},
-    {letter:"D",word:"Dog"},{letter:"E",word:"Egg"},{letter:"F",word:"Frog"},
-    {letter:"G",word:"Grapes"},{letter:"H",word:"House"},{letter:"I",word:"Ice cream"},
-    {letter:"J",word:"Juice"},{letter:"K",word:"Kite"},{letter:"L",word:"Lion"},
-    {letter:"M",word:"Moon"},{letter:"N",word:"Nose"},{letter:"O",word:"Orange"},
-    {letter:"P",word:"Pig"},{letter:"Q",word:"Queen"},{letter:"R",word:"Rainbow"},
-    {letter:"S",word:"Sun"},{letter:"T",word:"Turtle"},{letter:"U",word:"Umbrella"},
-    {letter:"V",word:"Violin"},{letter:"W",word:"Whale"},{letter:"X",word:"Xylophone"},
-    {letter:"Y",word:"Yarn"},{letter:"Z",word:"Zebra"}
-  ];
-  const NUMBERS=[
-    {num:"1",word:"One"},{num:"2",word:"Two"},{num:"3",word:"Three"},
-    {num:"4",word:"Four"},{num:"5",word:"Five"},{num:"6",word:"Six"},
-    {num:"7",word:"Seven"},{num:"8",word:"Eight"},{num:"9",word:"Nine"},
-    {num:"10",word:"Ten"}
-  ];
-  const SHAPES=[
-    {shape:"Circle"},{shape:"Square"},{shape:"Triangle"},{shape:"Star"},
-    {shape:"Heart"},{shape:"Oval"},{shape:"Diamond"},{shape:"Rectangle"}
-  ];
-  const FAVORITES=[
-    {name:"Dog"},{name:"Cat"},{name:"Fire Truck"},{name:"Airplane"},
-    {name:"Tractor"},{name:"Elephant"},{name:"Dinosaur"},{name:"Teddy Bear"}
-  ];
+  const COLORS=[{name:"Red",hex:"#ff3b30"},{name:"Blue",hex:"#007aff"},{name:"Yellow",hex:"#ffcc00"},{name:"Green",hex:"#34c759"},{name:"Orange",hex:"#ff9500"},{name:"Purple",hex:"#af52de"},{name:"Pink",hex:"#ff2d55"},{name:"Brown",hex:"#8b5e3c"},{name:"Black",hex:"#000000"},{name:"White",hex:"#ffffff"}];
+  const LETTERS=[{letter:"A",word:"Apple"},{letter:"B",word:"Bear"},{letter:"C",word:"Cat"},{letter:"D",word:"Dog"},{letter:"E",word:"Egg"},{letter:"F",word:"Frog"},{letter:"G",word:"Grapes"},{letter:"H",word:"House"},{letter:"I",word:"Ice cream"},{letter:"J",word:"Juice"},{letter:"K",word:"Kite"},{letter:"L",word:"Lion"},{letter:"M",word:"Moon"},{letter:"N",word:"Nose"},{letter:"O",word:"Orange"},{letter:"P",word:"Pig"},{letter:"Q",word:"Queen"},{letter:"R",word:"Rainbow"},{letter:"S",word:"Sun"},{letter:"T",word:"Turtle"},{letter:"U",word:"Umbrella"},{letter:"V",word:"Violin"},{letter:"W",word:"Whale"},{letter:"X",word:"Xylophone"},{letter:"Y",word:"Yarn"},{letter:"Z",word:"Zebra"}];
+  const NUMBERS=[{num:"1",word:"One"},{num:"2",word:"Two"},{num:"3",word:"Three"},{num:"4",word:"Four"},{num:"5",word:"Five"},{num:"6",word:"Six"},{num:"7",word:"Seven"},{num:"8",word:"Eight"},{num:"9",word:"Nine"},{num:"10",word:"Ten"}];
+  const SHAPES=[{shape:"Circle"},{shape:"Square"},{shape:"Triangle"},{shape:"Star"},{shape:"Heart"},{shape:"Oval"},{shape:"Diamond"},{shape:"Rectangle"}];
+  const FAVORITES=[{name:"Dog"},{name:"Cat"},{name:"Fire Truck"},{name:"Airplane"},{name:"Tractor"},{name:"Elephant"},{name:"Dinosaur"},{name:"Teddy Bear"}];
 
   let mode=localStorage.getItem("mode")||"colors";
   let index=0; let flipped=false; let autoplay=null; let muted=(localStorage.getItem("muted")==="true");
@@ -178,7 +230,6 @@ if ('serviceWorker' in navigator) {
     const item=d[index];
     card.classList.toggle("flipped", flipped);
 
-    // FRONT/BACK content
     if(mode==="colors"){
       front.style.background = item.hex;
       front.innerHTML="";
@@ -206,60 +257,9 @@ if ('serviceWorker' in navigator) {
       back.innerHTML=`<div class="big-text">${item.name}</div>`;
     }
 
-    // Speech only when flipped
     if(flipped){
       if(mode==="colors"){ speak(item.name); }
       else if(mode==="letters"){ speak(`${item.letter} is for ${item.word}`); }
       else if(mode==="numbers"){ speak(item.word); }
       else if(mode==="shapes"){ speak(item.shape); }
-      else if(mode==="favorites"){ speak(item.name); }
-    }
-
-    // Mute button display
-    muteBtn.textContent=muted?"🔇":"🔊";
-
-    // Update app title
-    appTitle.textContent = "Flashcards: " + mode.charAt(0).toUpperCase() + mode.slice(1);
-  }
-
-  // Controls & events
-  segBtns.forEach(b=>b.addEventListener("click",()=>{
-    mode=b.dataset.mode; 
-    localStorage.setItem("mode",mode);
-    index=0; flipped=false;
-    render();
-    segBtns.forEach(btn=>btn.setAttribute("aria-pressed","false"));
-    b.setAttribute("aria-pressed","true");
-  }));
-
-  prevBtn.addEventListener("click",()=>{index--; flipped=false; render();});
-  nextBtn.addEventListener("click",()=>{index++; flipped=false; render();});
-  flipBtn.addEventListener("click",()=>{flipped=!flipped; render();});
-  shuffleBtn.addEventListener("click",()=>{deck().sort(()=>Math.random()-0.5); index=0; flipped=false; render();});
-  autoplayBtn.addEventListener("click",()=>{
-    if(autoplay){ clearInterval(autoplay); autoplay=null; autoplayBtn.textContent="Auto Play"; }
-    else { autoplay=setInterval(()=>{ index++; flipped=false; render(); }, 2500); autoplayBtn.textContent="Stop Auto"; }
-  });
-  fullscreenBtn.addEventListener("click",()=>{
-    const el=document.documentElement;
-    if(!document.fullscreenElement){ if(el.requestFullscreen) el.requestFullscreen(); }
-    else { if(document.exitFullscreen) document.exitFullscreen(); }
-  });
-  muteBtn.addEventListener("click",()=>{ muted=!muted; localStorage.setItem("muted", muted?'true':'false'); render(); });
-  cardWrap.addEventListener("click",()=>{ flipped=!flipped; render(); });
-
-  // Swipe gestures
-  let startX=null;
-  cardWrap.addEventListener("touchstart",(e)=>{ if(e.touches.length===1) startX=e.touches[0].clientX; }, {passive:true});
-  cardWrap.addEventListener("touchend",(e)=>{
-    if(startX==null) return;
-    const dx=e.changedTouches[0].clientX - startX;
-    if(Math.abs(dx)>40){ if(dx<0){ index++; flipped=false; } else { index--; flipped=false; } render(); }
-    startX=null;
-  }, {passive:true});
-
-  render();
-})();
-</script>
-</body>
-</html>
+      else
