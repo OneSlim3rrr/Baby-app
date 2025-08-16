@@ -20,10 +20,9 @@ body {
   margin: 0;
 }
 
-.flashcard {
+.flashcard, .card {
   width: 90%;
   height: 70%;
-  background: white;
   border-radius: 25px;
   box-shadow: 0 8px 16px rgba(0,0,0,0.2);
   display: flex;
@@ -32,12 +31,26 @@ body {
   font-size: 8rem;
   font-weight: bold;
   color: #333;
-  transition: transform 0.4s ease;
+  transition: transform 0.4s ease, background 0.3s ease;
+  cursor: pointer;
 }
 
-.flashcard:active {
-  transform: scale(1.1) rotate(3deg);
+.card.flipped .front { display: none; }
+.card.flipped .back { display: flex; }
+
+.face.front, .face.back {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border-radius: 25px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  backface-visibility: hidden;
+  transition: transform 0.4s;
 }
+
+.face.back { display: none; background: #fff; }
 
 button {
   font-size: 2rem;
@@ -51,9 +64,8 @@ button {
   box-shadow: 0 4px 10px rgba(0,0,0,0.2);
 }
 
-button:active {
-  background: #0077cc;
-}
+button:active { background: #0077cc; }
+.big-text { font-size: 6rem; text-align: center; padding: 0 10px; }
 </style>
 </head>
 <body>
@@ -101,41 +113,35 @@ if ('serviceWorker' in navigator) {
 
 (function(){
   const COLORS=[
-    {name:"Red",hex:"#ff3b30",emoji:"🍎",object:"apple"},
-    {name:"Blue",hex:"#007aff",emoji:"🚗",object:"car"},
-    {name:"Yellow",hex:"#ffcc00",emoji:"🌞",object:"sun"},
-    {name:"Green",hex:"#34c759",emoji:"🍀",object:"leaf"},
-    {name:"Orange",hex:"#ff9500",emoji:"🍊",object:"orange"},
-    {name:"Purple",hex:"#af52de",emoji:"🍇",object:"grapes"},
-    {name:"Pink",hex:"#ff2d55",emoji:"🐷",object:"pig"},
-    {name:"Brown",hex:"#8b5e3c",emoji:"🐻",object:"bear"},
-    {name:"Black",hex:"#000000",emoji:"🐧",object:"penguin"},
-    {name:"White",hex:"#ffffff",emoji:"⛄",object:"snowman"}
+    {name:"Red",hex:"#ff3b30"},{name:"Blue",hex:"#007aff"},{name:"Yellow",hex:"#ffcc00"},
+    {name:"Green",hex:"#34c759"},{name:"Orange",hex:"#ff9500"},{name:"Purple",hex:"#af52de"},
+    {name:"Pink",hex:"#ff2d55"},{name:"Brown",hex:"#8b5e3c"},{name:"Black",hex:"#000000"},
+    {name:"White",hex:"#ffffff"}
   ];
   const LETTERS=[
-    {letter:"A",word:"Apple",emoji:"🍎"},{letter:"B",word:"Bear",emoji:"🐻"},{letter:"C",word:"Cat",emoji:"🐱"},
-    {letter:"D",word:"Dog",emoji:"🐶"},{letter:"E",word:"Egg",emoji:"🥚"},{letter:"F",word:"Frog",emoji:"🐸"},
-    {letter:"G",word:"Grapes",emoji:"🍇"},{letter:"H",word:"House",emoji:"🏠"},{letter:"I",word:"Ice cream",emoji:"🍨"},
-    {letter:"J",word:"Juice",emoji:"🧃"},{letter:"K",word:"Kite",emoji:"🪁"},{letter:"L",word:"Lion",emoji:"🦁"},
-    {letter:"M",word:"Moon",emoji:"🌙"},{letter:"N",word:"Nose",emoji:"👃"},{letter:"O",word:"Orange",emoji:"🍊"},
-    {letter:"P",word:"Pig",emoji:"🐷"},{letter:"Q",word:"Queen",emoji:"👑"},{letter:"R",word:"Rainbow",emoji:"🌈"},
-    {letter:"S",word:"Sun",emoji:"🌞"},{letter:"T",word:"Turtle",emoji:"🐢"},{letter:"U",word:"Umbrella",emoji:"☂️"},
-    {letter:"V",word:"Violin",emoji:"🎻"},{letter:"W",word:"Whale",emoji:"🐳"},{letter:"X",word:"Xylophone",emoji:"🎼"},
-    {letter:"Y",word:"Yarn",emoji:"🧶"},{letter:"Z",word:"Zebra",emoji:"🦓"}
+    {letter:"A",word:"Apple"},{letter:"B",word:"Bear"},{letter:"C",word:"Cat"},
+    {letter:"D",word:"Dog"},{letter:"E",word:"Egg"},{letter:"F",word:"Frog"},
+    {letter:"G",word:"Grapes"},{letter:"H",word:"House"},{letter:"I",word:"Ice cream"},
+    {letter:"J",word:"Juice"},{letter:"K",word:"Kite"},{letter:"L",word:"Lion"},
+    {letter:"M",word:"Moon"},{letter:"N",word:"Nose"},{letter:"O",word:"Orange"},
+    {letter:"P",word:"Pig"},{letter:"Q",word:"Queen"},{letter:"R",word:"Rainbow"},
+    {letter:"S",word:"Sun"},{letter:"T",word:"Turtle"},{letter:"U",word:"Umbrella"},
+    {letter:"V",word:"Violin"},{letter:"W",word:"Whale"},{letter:"X",word:"Xylophone"},
+    {letter:"Y",word:"Yarn"},{letter:"Z",word:"Zebra"}
   ];
   const NUMBERS=[
-    {num:"1",word:"One dog",emoji:"🐶"},{num:"2",word:"Two fingers",emoji:"✌️"},{num:"3",word:"Three bananas",emoji:"🍌"},
-    {num:"4",word:"Four cars",emoji:"🚗"},{num:"5",word:"Five stars",emoji:"⭐"},{num:"6",word:"Six fish",emoji:"🐟"},
-    {num:"7",word:"Seven colors",emoji:"🌈"},{num:"8",word:"Eight legs",emoji:"🐙"},{num:"9",word:"Nine balloons",emoji:"🎈"},
-    {num:"10",word:"Ten cookies",emoji:"🍪"}
+    {num:"1",word:"One"},{num:"2",word:"Two"},{num:"3",word:"Three"},
+    {num:"4",word:"Four"},{num:"5",word:"Five"},{num:"6",word:"Six"},
+    {num:"7",word:"Seven"},{num:"8",word:"Eight"},{num:"9",word:"Nine"},
+    {num:"10",word:"Ten"}
   ];
   const SHAPES=[
-    {shape:"Circle",emoji:"⚪"},{shape:"Square",emoji:"🟥"},{shape:"Triangle",emoji:"🔺"},{shape:"Star",emoji:"⭐"},
-    {shape:"Heart",emoji:"❤️"},{shape:"Oval",emoji:"🥚"},{shape:"Diamond",emoji:"💎"},{shape:"Rectangle",emoji:"📱"}
+    {shape:"Circle"},{shape:"Square"},{shape:"Triangle"},{shape:"Star"},
+    {shape:"Heart"},{shape:"Oval"},{shape:"Diamond"},{shape:"Rectangle"}
   ];
   const FAVORITES=[
-    {name:"Dog",emoji:"🐶"},{name:"Cat",emoji:"🐱"},{name:"Fire Truck",emoji:"🚒"},{name:"Airplane",emoji:"✈️"},
-    {name:"Tractor",emoji:"🚜"},{name:"Elephant",emoji:"🐘"},{name:"Dinosaur",emoji:"🦖"},{name:"Teddy Bear",emoji:"🧸"}
+    {name:"Dog"},{name:"Cat"},{name:"Fire Truck"},{name:"Airplane"},
+    {name:"Tractor"},{name:"Elephant"},{name:"Dinosaur"},{name:"Teddy Bear"}
   ];
 
   let mode=localStorage.getItem("mode")||"colors";
@@ -144,45 +150,91 @@ if ('serviceWorker' in navigator) {
   const appTitle=document.getElementById("appTitle");
   const front=document.getElementById("front"), back=document.getElementById("back"), card=document.getElementById("card");
   const cardWrap=document.getElementById("cardWrap");
-  const segBtns=document.querySelectorAll(".seg button");
   const prevBtn=document.getElementById("prevBtn"), nextBtn=document.getElementById("nextBtn"),
         flipBtn=document.getElementById("flipBtn"), shuffleBtn=document.getElementById("shuffleBtn"),
         autoplayBtn=document.getElementById("autoplayBtn"), fullscreenBtn=document.getElementById("fullscreenBtn"),
         muteBtn=document.getElementById("muteBtn");
+  const segBtns=document.querySelectorAll(".seg button");
 
-  function deck(){return mode==="colors"?COLORS:mode==="letters"?LETTERS:mode==="numbers"?NUMBERS:mode==="shapes"?SHAPES:FAVORITES;}
-  function speak(txt){ if(muted) return; if(!("speechSynthesis" in window))return; try { let u=new SpeechSynthesisUtterance(txt); u.rate=0.7; window.speechSynthesis.cancel(); window.speechSynthesis.speak(u);}catch(e){} }
-  function render(){
-    const d=deck(); if(index<0) index=d.length-1; if(index>=d.length) index=0;
-    const item=d[index]; card.classList.toggle("flipped",flipped);
-    ifif(flipped){
-    if(mode==="colors"){
-        speak(item.name);
-    } else if(mode==="letters"){
-        speak(`${item.letter} is for ${item.word}`);
-    } else if(mode==="numbers"){
-        speak(item.word);
-    } else if(mode==="shapes"){
-        speak(item.shape);
-    } else if(mode==="favorites"){
-        speak(item.name);
-    }
-}
-    muteBtn.textContent=muted?"🔇":"🔊";
+  function deck(){
+    return mode==="colors"?COLORS:mode==="letters"?LETTERS:mode==="numbers"?NUMBERS:mode==="shapes"?SHAPES:FAVORITES;
   }
 
-  function getTextColor(bgHex){
-    const hex=bgHex.replace("#","");
-    const r=parseInt(hex.substr(0,2),16); const g=parseInt(hex.substr(2,2),16); const b=parseInt(hex.substr(4,2),16);
-    const yiq=(r*299+g*587+b*114)/1000;
-    return yiq>=128?"#111111":"#ffffff";
+  function speak(txt){
+    if(muted) return;
+    if(!("speechSynthesis" in window)) return;
+    try{
+      let u=new SpeechSynthesisUtterance(txt);
+      u.rate=0.7;
+      window.speechSynthesis.cancel();
+      window.speechSynthesis.speak(u);
+    }catch(e){}
+  }
+
+  function render(){
+    const d=deck(); 
+    if(index<0) index=d.length-1;
+    if(index>=d.length) index=0;
+    const item=d[index];
+    card.classList.toggle("flipped", flipped);
+
+    // FRONT/BACK content
+    if(mode==="colors"){
+      front.style.background = item.hex;
+      front.innerHTML="";
+      back.style.background = "#fff";
+      back.innerHTML=`<div class="big-text">${item.name}</div>`;
+    } else if(mode==="letters"){
+      front.style.background="#fff";
+      front.innerHTML=`<div class="big-text">${item.letter}</div>`;
+      back.style.background="#fff";
+      back.innerHTML=`<div class="big-text">${item.word}</div>`;
+    } else if(mode==="numbers"){
+      front.style.background="#fff";
+      front.innerHTML=`<div class="big-text">${item.num}</div>`;
+      back.style.background="#fff";
+      back.innerHTML=`<div class="big-text">${item.word}</div>`;
+    } else if(mode==="shapes"){
+      front.style.background="#fff";
+      front.innerHTML=`<div class="big-text">${item.shape}</div>`;
+      back.style.background="#fff";
+      back.innerHTML=`<div class="big-text">${item.shape}</div>`;
+    } else if(mode==="favorites"){
+      front.style.background="#fff";
+      front.innerHTML=`<div class="big-text">${item.name}</div>`;
+      back.style.background="#fff";
+      back.innerHTML=`<div class="big-text">${item.name}</div>`;
+    }
+
+    // Speech only when flipped
+    if(flipped){
+      if(mode==="colors"){ speak(item.name); }
+      else if(mode==="letters"){ speak(`${item.letter} is for ${item.word}`); }
+      else if(mode==="numbers"){ speak(item.word); }
+      else if(mode==="shapes"){ speak(item.shape); }
+      else if(mode==="favorites"){ speak(item.name); }
+    }
+
+    // Mute button display
+    muteBtn.textContent=muted?"🔇":"🔊";
+
+    // Update app title
+    appTitle.textContent = "Flashcards: " + mode.charAt(0).toUpperCase() + mode.slice(1);
   }
 
   // Controls & events
-  document.querySelectorAll(".seg button").forEach(b=>b.addEventListener("click",()=>{mode=b.dataset.mode; localStorage.setItem("mode",mode); index=0; flipped=false; render();}));
-  prevBtn.addEventListener("click",()=>{index--;flipped=false;render();});
-  nextBtn.addEventListener("click",()=>{index++;flipped=false;render();});
-  flipBtn.addEventListener("click",()=>{flipped=!flipped;render();});
+  segBtns.forEach(b=>b.addEventListener("click",()=>{
+    mode=b.dataset.mode; 
+    localStorage.setItem("mode",mode);
+    index=0; flipped=false;
+    render();
+    segBtns.forEach(btn=>btn.setAttribute("aria-pressed","false"));
+    b.setAttribute("aria-pressed","true");
+  }));
+
+  prevBtn.addEventListener("click",()=>{index--; flipped=false; render();});
+  nextBtn.addEventListener("click",()=>{index++; flipped=false; render();});
+  flipBtn.addEventListener("click",()=>{flipped=!flipped; render();});
   shuffleBtn.addEventListener("click",()=>{deck().sort(()=>Math.random()-0.5); index=0; flipped=false; render();});
   autoplayBtn.addEventListener("click",()=>{
     if(autoplay){ clearInterval(autoplay); autoplay=null; autoplayBtn.textContent="Auto Play"; }
