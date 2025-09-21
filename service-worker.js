@@ -1,38 +1,43 @@
-
-const CACHE_NAME = 'flashcards-pwa-v1';
-const ASSETS = [
-  './',
-  './index.html',
-  './manifest.webmanifest',
-  './assets/icon-192.png',
-  './assets/icon-512.png'
+const CACHE_NAME = "flashcards-cache-v1";
+const FILES_TO_CACHE = [
+  "index.html",
+  "manifest.webmanifest",
+  "service-worker.js",
+  "icons/icon-192.png",
+  "icons/icon-512.png"
 ];
 
-self.addEventListener('install', (event) => {
-  event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => cache.addAll(ASSETS))
+// Install
+self.addEventListener("install", (e) => {
+  e.waitUntil(
+    caches.open(CACHE_NAME).then((cache) => {
+      return cache.addAll(FILES_TO_CACHE);
+    })
   );
   self.skipWaiting();
 });
 
-self.addEventListener('activate', (event) => {
-  event.waitUntil(
-    caches.keys().then((keys) =>
-      Promise.all(keys.map((k) => (k === CACHE_NAME ? null : caches.delete(k))))
+// Activate
+self.addEventListener("activate", (e) => {
+  e.waitUntil(
+    caches.keys().then((keyList) =>
+      Promise.all(
+        keyList.map((key) => {
+          if (key !== CACHE_NAME) {
+            return caches.delete(key);
+          }
+        })
+      )
     )
   );
   self.clients.claim();
 });
 
-self.addEventListener('fetch', (event) => {
-  event.respondWith(
-    caches.match(event.request).then((cached) => {
-      if (cached) return cached;
-      return fetch(event.request).then((res) => {
-        const copy = res.clone();
-        caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));
-        return res;
-      }).catch(() => cached);
+// Fetch
+self.addEventListener("fetch", (e) => {
+  e.respondWith(
+    caches.match(e.request).then((resp) => {
+      return resp || fetch(e.request);
     })
   );
 });
