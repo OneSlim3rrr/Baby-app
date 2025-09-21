@@ -1,242 +1,595 @@
 <!DOCTYPE html>
+
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Flashcards PWA</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Baby Learning App</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-  <!-- PWA manifest -->
-  <link rel="manifest" href="manifest.webmanifest">
-  <meta name="theme-color" content="#4CAF50">
-
-  <!-- iOS install support -->
-  <link rel="apple-touch-icon" href="icons/icon-192.png">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-
-  <style>
-    :root {
-      --bg: #f0f4f8;
-      --card: #ffffff;
-      --accent: #4CAF50;
-    }
     body {
-      margin:0; font-family:sans-serif; background:var(--bg); display:flex; flex-direction:column; height:100vh;
+        font-family: Arial, sans-serif;
+        background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 50%, #fecfef 100%);
+        min-height: 100vh;
+        user-select: none;
+        overflow-x: hidden;
     }
-    header {
-      background:var(--accent); color:white; padding:10px; text-align:center;
-    }
-    main { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; }
-    .stage { flex:1; display:flex; align-items:center; justify-content:center; width:100%; perspective:1000px; }
-    .card {
-      width:80%; height:60%; position:relative; transform-style:preserve-3d; transition:transform 0.8s;
-    }
-    .card.flipped { transform:rotateY(180deg); }
-    .face {
-      position:absolute; width:100%; height:100%; backface-visibility:hidden; display:flex; flex-direction:column; align-items:center; justify-content:center;
-      border-radius:25px; background:var(--card); box-shadow:0 4px 8px rgba(0,0,0,0.2);
-    }
-    .back { transform:rotateY(180deg); }
-    .big-text { font-size:5rem; margin-bottom:10px; }
-    .sub { font-size:2rem; }
 
-    nav { display:flex; justify-content:center; flex-wrap:wrap; margin:10px; gap:5px; }
-    button { padding:10px 15px; border:none; border-radius:8px; cursor:pointer; background:#ddd; }
-    button[aria-pressed="true"] { background:var(--accent); color:#fff; }
-    .seg button { margin:2px; }
+    .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
+    }
 
-    /* Alphabet grid */
-    .alphabet-grid {
-      display:grid; grid-template-columns:repeat(auto-fill, minmax(120px,1fr));
-      gap:15px; padding:20px; width:100%; box-sizing:border-box;
+    .header {
+        text-align: center;
+        margin-bottom: 30px;
     }
-    .alphabet-tile {
-      background:#fff; border-radius:15px; box-shadow:0 4px 8px rgba(0,0,0,0.2);
-      text-align:center; padding:15px; font-size:2rem; cursor:pointer; transition:transform 0.2s ease;
+
+    .header h1 {
+        font-size: 3rem;
+        color: #ff6b6b;
+        text-shadow: 3px 3px 0px #fff;
+        margin-bottom: 10px;
+        animation: bounce 2s infinite;
     }
-    .alphabet-tile:hover { transform:scale(1.05); }
-    .alphabet-tile .letter { font-size:3rem; font-weight:bold; margin-bottom:5px; }
-    .alphabet-tile .emoji { font-size:2rem; margin-bottom:5px; }
-    .alphabet-tile .word { font-size:1.2rem; color:#444; }
-    .highlight { border:3px solid var(--accent); }
-  </style>
+
+    @keyframes bounce {
+        0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+        40% { transform: translateY(-10px); }
+        60% { transform: translateY(-5px); }
+    }
+
+    .tabs {
+        display: flex;
+        justify-content: center;
+        gap: 20px;
+        margin-bottom: 30px;
+        flex-wrap: wrap;
+    }
+
+    .tab {
+        padding: 15px 30px;
+        font-size: 1.5rem;
+        border: none;
+        border-radius: 25px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-weight: bold;
+        text-transform: uppercase;
+    }
+
+    .tab.letters {
+        background: #ff7675;
+        color: white;
+    }
+
+    .tab.numbers {
+        background: #74b9ff;
+        color: white;
+    }
+
+    .tab.colors {
+        background: #55a3ff;
+        color: white;
+    }
+
+    .tab.active {
+        transform: scale(1.1);
+        box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+    }
+
+    .content {
+        display: none;
+        animation: fadeIn 0.5s ease;
+    }
+
+    .content.active {
+        display: block;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 20px;
+        max-width: 1000px;
+        margin: 0 auto;
+    }
+
+    .learning-item {
+        background: white;
+        border-radius: 20px;
+        padding: 30px;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+        border: 4px solid transparent;
+    }
+
+    .learning-item:hover {
+        transform: scale(1.05) rotate(2deg);
+        box-shadow: 0 12px 35px rgba(0,0,0,0.2);
+        border-color: #ff6b6b;
+    }
+
+    .learning-item:active {
+        transform: scale(0.95);
+    }
+
+    .item-display {
+        font-size: 4rem;
+        font-weight: bold;
+        margin-bottom: 15px;
+        line-height: 1;
+        text-shadow: 3px 3px 6px rgba(0,0,0,0.3);
+    }
+
+    .item-label {
+        font-size: 1.5rem;
+        font-weight: bold;
+        color: #000;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        text-shadow: 2px 2px 4px rgba(255,255,255,0.8);
+        background: rgba(255,255,255,0.9);
+        padding: 8px 12px;
+        border-radius: 10px;
+        margin-top: 10px;
+    }
+
+    .color-item {
+        width: 120px;
+        height: 120px;
+        border-radius: 50%;
+        margin: 0 auto 15px;
+        border: 6px solid white;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    }
+
+    .current-display {
+        background: white;
+        border-radius: 20px;
+        padding: 40px;
+        text-align: center;
+        margin-bottom: 30px;
+        box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+    }
+
+    .current-item {
+        font-size: 8rem;
+        font-weight: bold;
+        margin-bottom: 20px;
+        animation: pulse 2s infinite;
+        text-shadow: 4px 4px 8px rgba(0,0,0,0.3);
+    }
+
+    .current-label {
+        font-size: 2.5rem;
+        font-weight: bold;
+        color: #000;
+        text-transform: uppercase;
+        letter-spacing: 3px;
+        text-shadow: 3px 3px 6px rgba(255,255,255,0.9);
+        background: rgba(255,255,255,0.95);
+        padding: 15px 25px;
+        border-radius: 15px;
+        display: inline-block;
+    }
+
+    @keyframes pulse {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.1); }
+        100% { transform: scale(1); }
+    }
+
+    .sound-indicator {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: #ff6b6b;
+        color: white;
+        padding: 10px 20px;
+        border-radius: 20px;
+        font-weight: bold;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+
+    .sound-indicator.show {
+        opacity: 1;
+    }
+
+    .start-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.8);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 1000;
+    }
+
+    .start-button {
+        background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
+        color: white;
+        border: none;
+        padding: 30px 60px;
+        font-size: 2rem;
+        border-radius: 25px;
+        cursor: pointer;
+        font-weight: bold;
+        text-transform: uppercase;
+        box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+        transition: transform 0.3s ease;
+    }
+
+    .start-button:hover {
+        transform: scale(1.05);
+    }
+
+    .hidden {
+        display: none;
+    }
+
+        @media (max-width: 768px) {
+        .header h1 {
+            font-size: 2rem;
+        }
+        .tab {
+            padding: 12px 20px;
+            font-size: 1.2rem;
+        }
+        .current-item {
+            font-size: 5rem;
+        }
+        .current-label {
+            font-size: 1.8rem;
+            padding: 12px 20px;
+        }
+        .item-display {
+            font-size: 3rem;
+        }
+        .item-label {
+            font-size: 1.2rem;
+            padding: 6px 10px;
+        }
+    }
+</style>
+```
+
 </head>
 <body>
-<header>
-  <h1 id="appTitle">I Can Learn!</h1>
-</header>
-<main>
-  <div class="stage">
-    <div class="card" id="card">
-      <div class="face front" id="front"></div>
-      <div class="face back" id="back"></div>
+    <div class="start-overlay" id="startOverlay">
+        <button class="start-button" onclick="startApp()">🎵 Start Learning! 🎵</button>
     </div>
-  </div>
-  <div class="alphabet-grid" id="alphabetGrid" hidden></div>
-</main>
-<nav>
-  <div class="seg">
-    <button data-mode="colors">Colors</button>
-    <button data-mode="words">Words</button>
-    <button data-mode="numbers">Numbers</button>
-    <button data-mode="shapes">Shapes</button>
-    <button data-mode="alphabet">Alphabet</button>
-    <button data-mode="favorites">★ Favorites</button>
-  </div>
-  <button id="prev">Prev</button>
-  <button id="flip">Flip</button>
-  <button id="next">Next</button>
-  <button id="shuffle">Shuffle</button>
-  <button id="auto">AutoPlay</button>
-  <button id="speak">🔊</button>
-</nav>
+
+```
+<div class="sound-indicator" id="soundIndicator">Playing Sound! 🔊</div>
+
+<div class="container">
+    <div class="header">
+        <h1>🌟 Baby Learning Fun! 🌟</h1>
+    </div>
+
+    <div class="tabs">
+        <button class="tab letters active" onclick="showTab('letters')">📚 Letters</button>
+        <button class="tab numbers" onclick="showTab('numbers')">🔢 Numbers</button>
+        <button class="tab colors" onclick="showTab('colors')">🎨 Colors</button>
+    </div>
+
+    <div id="letters" class="content active">
+        <div class="current-display">
+            <div class="current-item" id="currentLetter">A</div>
+            <div class="current-label" id="currentLetterLabel">A is for Apple</div>
+        </div>
+        <div class="grid" id="lettersGrid"></div>
+    </div>
+
+    <div id="numbers" class="content">
+        <div class="current-display">
+            <div class="current-item" id="currentNumber">1</div>
+            <div class="current-label" id="currentNumberLabel">One</div>
+        </div>
+        <div class="grid" id="numbersGrid"></div>
+    </div>
+
+    <div id="colors" class="content">
+        <div class="current-display">
+            <div class="current-item">
+                <div class="color-item" id="currentColorDisplay" style="background-color: #ff6b6b; width: 150px; height: 150px;"></div>
+            </div>
+            <div class="current-label" id="currentColorLabel">Red</div>
+        </div>
+        <div class="grid" id="colorsGrid"></div>
+    </div>
+</div>
 
 <script>
-// --- Decks ---
-const COLORS=[
-  {front:"Red",back:"🔴"},
-  {front:"Blue",back:"🔵"},
-  {front:"Green",back:"🟢"},
-  {front:"Yellow",back:"🟡"},
-  {front:"Orange",back:"🟠"},
-  {front:"Brown",back:"🟤"},
-  {front:"Purple",back:"🟣"},
-  {front:"White",back:"⚪️"},
-  {front:"Black",back:"⚫️"}
-];
-const WORDS=[
-  {emoji:"🍎",word:"Apple"},{emoji:"🐻",word:"Bear"},{emoji:"🐱",word:"Cat"},
-  {emoji:"🐶",word:"Dog"},{emoji:"🥚",word:"Egg"},{emoji:"🐸",word:"Frog"},
-  {emoji:"🦒",word:"Giraffe"},{emoji:"🏠",word:"House"},{emoji:"🍦",word:"Ice Cream"},
-  {emoji:"🧃",word:"Juice"},{emoji:"🦘",word:"Kangaroo"},{emoji:"🦁",word:"Lion"},
-  {emoji:"🌝",word:"Moon"},{emoji:"🥷🏽",word:"Ninja"},{emoji:"🐙",word:"Octopus"},
-  {emoji:"🍕",word:"Pizza"},{emoji:"👸",word:"Queen"},{emoji:"🌈",word:"Rainbow"},
-  {emoji:"⭐",word:"Star"},{emoji:"🌳",word:"Tree"},{emoji:"☂️",word:"Umbrella"},
-  {emoji:"🎻",word:"Violin"},{emoji:"🌊",word:"Water"},{emoji:"❌",word:"X-ray"},
-  {emoji:"🛶",word:"Yacht"},{emoji:"🦓",word:"Zebra"}
-];
-const NUMBERS=[
-  {front:"1",back:"1"},{front:"2",back:"2"},{front:"3",back:"3"},
-  {front:"4",back:"4"},{front:"5",back:"5"},{front:"6",back:"6"},
-  {front:"7",back:"7"},{front:"8",back:"8"},{front:"9",back:"9"},
-  {front:"10",back:"10"}
-];
-const SHAPES=[
-  {front:"Circle",back:"⚪"},{front:"Square",back:"⬜"},{front:"Triangle",back:"🔺"},
-  {front:"Oval",back:"🥚"},{front:"Diamond",back:"🔷"}
-];
-const LETTERS=[
-  {letter:"A",emoji:"🍎",word:"Apple"},
-  {letter:"B",emoji:"🐻",word:"Bear"},
-  {letter:"C",emoji:"🐱",word:"Cat"},
-  // ... continue full alphabet
-];
-const FAVORITES=[];
+    // Audio context for sound generation
+    let audioContext;
+    let speechEnabled = false;
+    
+    function initAudio() {
+        if (!audioContext) {
+            audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        }
+    }
 
-// --- State ---
-let mode="colors", index=0, flipped=false, autoplay=null, muted=false;
-const card=document.getElementById("card"), front=document.getElementById("front"), back=document.getElementById("back");
-const appTitle=document.getElementById("appTitle"), alphabetGrid=document.getElementById("alphabetGrid");
+    function speak(text) {
+        if ('speechSynthesis' in window) {
+            // Cancel any ongoing speech
+            speechSynthesis.cancel();
+            
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.rate = 0.7; // Slower for babies
+            utterance.pitch = 1.2; // Higher pitch for children
+            utterance.volume = 0.8;
+            
+            // Try to use a child-friendly voice if available
+            const voices = speechSynthesis.getVoices();
+            const preferredVoice = voices.find(voice => 
+                voice.name.includes('Google') || 
+                voice.name.includes('Microsoft') ||
+                voice.lang.includes('en')
+            );
+            if (preferredVoice) {
+                utterance.voice = preferredVoice;
+            }
+            
+            speechSynthesis.speak(utterance);
+            showSoundIndicator();
+        }
+    }
 
-// Alphabet mode
-let alphabetTimer=null, alphabetIndex=0;
+    function startApp() {
+        initAudio();
+        speechEnabled = true;
+        document.getElementById('startOverlay').classList.add('hidden');
+        playChord([261.63, 329.63, 392.00], 1000); // Welcome chord
+        
+        // Load voices for speech synthesis
+        if ('speechSynthesis' in window) {
+            speechSynthesis.getVoices();
+        }
+    }
 
-// --- Helpers ---
-function deck(){
-  return mode==="colors"?COLORS:
-         mode==="words"?WORDS:
-         mode==="numbers"?NUMBERS:
-         mode==="shapes"?SHAPES:
-         mode==="alphabet"?LETTERS:
-         FAVORITES;
-}
-function speak(text){
-  if(muted) return;
-  speechSynthesis.cancel();
-  const utter=new SpeechSynthesisUtterance(text);
-  speechSynthesis.speak(utter);
-}
-function render(){
-  if(mode==="alphabet"){ renderAlphabetGrid(); return; }
-  exitAlphabetGrid();
-  const d=deck(); if(index>=d.length) index=0;
-  const item=d[index];
-  card.classList.toggle("flipped",flipped);
+    function playTone(frequency, duration = 500) {
+        initAudio();
+        const oscillator = audioContext.createOscillator();
+        const gainNode = audioContext.createGain();
+        
+        oscillator.connect(gainNode);
+        gainNode.connect(audioContext.destination);
+        
+        oscillator.frequency.setValueAtTime(frequency, audioContext.currentTime);
+        oscillator.type = 'sine';
+        
+        gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + duration / 1000);
+        
+        oscillator.start(audioContext.currentTime);
+        oscillator.stop(audioContext.currentTime + duration / 1000);
+        
+        showSoundIndicator();
+    }
 
-  if(mode==="words"){
-    appTitle.textContent="Flashcards: Words";
-    front.innerHTML=`<div class="emoji">${item.emoji}</div>`;
-    back.innerHTML=`<div class="word">${item.word}</div>`;
-    speak(item.word);
-  }else{
-    appTitle.textContent="Flashcards: " + mode.charAt(0).toUpperCase()+mode.slice(1);
-    front.innerHTML=`<div class="big-text">${item.front||item.letter}</div>`;
-    back.innerHTML=`<div class="big-text">${item.back||item.word||""}</div>`;
-    speak(item.front||item.letter);
-  }
-}
+    function playChord(frequencies, duration = 800) {
+        frequencies.forEach((freq, index) => {
+            setTimeout(() => playTone(freq, duration - (index * 100)), index * 100);
+        });
+    }
 
-// --- Alphabet Grid ---
-function renderAlphabetGrid(){
-  appTitle.textContent="Flashcards: Alphabet Grid";
-  document.querySelector(".stage").style.display="none";
-  alphabetGrid.hidden=false;
-  alphabetGrid.innerHTML="";
-  LETTERS.forEach((item,idx)=>{
-    const tile=document.createElement("div");
-    tile.className="alphabet-tile";
-    tile.innerHTML=`<div class="letter">${item.letter}</div><div class="emoji">${item.emoji}</div><div class="word">${item.word}</div>`;
-    tile.addEventListener("click",()=>{
-      speak(`${item.letter}, ${item.word}`);
-      highlightTile(idx);
-      alphabetIndex=idx;
-    });
-    alphabetGrid.appendChild(tile);
-  });
-  if(alphabetTimer) clearInterval(alphabetTimer);
-  alphabetIndex=0;
-  speak(`${LETTERS[0].letter}, ${LETTERS[0].word}`);
-  highlightTile(0);
-  alphabetTimer=setInterval(()=>{
-    alphabetIndex=(alphabetIndex+1)%LETTERS.length;
-    const l=LETTERS[alphabetIndex];
-    speak(`${l.letter}, ${l.word}`);
-    highlightTile(alphabetIndex);
-  },5000);
-}
-function highlightTile(idx){
-  document.querySelectorAll(".alphabet-tile").forEach((t,i)=>t.classList.toggle("highlight",i===idx));
-}
-function exitAlphabetGrid(){
-  if(alphabetTimer) clearInterval(alphabetTimer);
-  alphabetGrid.hidden=true;
-  document.querySelector(".stage").style.display="flex";
-}
+    function showSoundIndicator() {
+        const indicator = document.getElementById('soundIndicator');
+        indicator.classList.add('show');
+        setTimeout(() => indicator.classList.remove('show'), 1000);
+    }
 
-// --- Events ---
-document.querySelectorAll("[data-mode]").forEach(b=>b.onclick=()=>{
-  mode=b.dataset.mode; index=0; flipped=false; render();
-});
-document.getElementById("prev").onclick=()=>{index=(index-1+deck().length)%deck().length;render();};
-document.getElementById("next").onclick=()=>{index=(index+1)%deck().length;render();};
-document.getElementById("flip").onclick=()=>{flipped=!flipped;render();};
-document.getElementById("shuffle").onclick=()=>{index=Math.floor(Math.random()*deck().length);render();};
-document.getElementById("auto").onclick=()=>{
-  if(autoplay){clearInterval(autoplay);autoplay=null;}
-  else autoplay=setInterval(()=>{index=(index+1)%deck().length;render();},2000);
-};
-document.getElementById("speak").onclick=()=>{muted=!muted;document.getElementById("speak").textContent=muted?"🔇":"🔊";};
+    // Letters data
+    const letters = [
+        {letter: 'A', word: 'Apple', color: '#ff6b6b'},
+        {letter: 'B', word: 'Ball', color: '#4ecdc4'},
+        {letter: 'C', word: 'Cat', color: '#45b7d1'},
+        {letter: 'D', word: 'Dog', color: '#96ceb4'},
+        {letter: 'E', word: 'Elephant', color: '#ffeaa7'},
+        {letter: 'F', word: 'Fish', color: '#dda0dd'},
+        {letter: 'G', word: 'Giraffe', color: '#98d8c8'},
+        {letter: 'H', word: 'House', color: '#f7dc6f'},
+        {letter: 'I', word: 'Ice Cream', color: '#bb8fce'},
+        {letter: 'J', word: 'Juice', color: '#82e0aa'},
+        {letter: 'K', word: 'Kite', color: '#85c1e9'},
+        {letter: 'L', word: 'Lion', color: '#f8c471'},
+        {letter: 'M', word: 'Moon', color: '#d2b4de'},
+        {letter: 'N', word: 'Nose', color: '#7fb3d3'},
+        {letter: 'O', word: 'Orange', color: '#faa85c'},
+        {letter: 'P', word: 'Pig', color: '#f1948a'},
+        {letter: 'Q', word: 'Queen', color: '#c39bd3'},
+        {letter: 'R', word: 'Rainbow', color: '#7dcea0'},
+        {letter: 'S', word: 'Sun', color: '#f7dc6f'},
+        {letter: 'T', word: 'Tree', color: '#82e0aa'},
+        {letter: 'U', word: 'Umbrella', color: '#85c1e9'},
+        {letter: 'V', word: 'Van', color: '#d5a6bd'},
+        {letter: 'W', word: 'Water', color: '#7fb3d3'},
+        {letter: 'X', word: 'Xylophone', color: '#f8c471'},
+        {letter: 'Y', word: 'Yellow', color: '#f7dc6f'},
+        {letter: 'Z', word: 'Zebra', color: '#85c1e9'}
+    ];
 
-// Swipe
-let touchStartX=0;
-document.addEventListener("touchstart",e=>{touchStartX=e.changedTouches[0].screenX;});
-document.addEventListener("touchend",e=>{
-  let dx=e.changedTouches[0].screenX-touchStartX;
-  if(Math.abs(dx)>50){ if(dx>0) index=(index-1+deck().length)%deck().length; else index=(index+1)%deck().length; render();}
-});
+    // Numbers data
+    const numbers = [
+        {num: '1', word: 'One', color: '#ff6b6b'},
+        {num: '2', word: 'Two', color: '#4ecdc4'},
+        {num: '3', word: 'Three', color: '#45b7d1'},
+        {num: '4', word: 'Four', color: '#96ceb4'},
+        {num: '5', word: 'Five', color: '#ffeaa7'},
+        {num: '6', word: 'Six', color: '#dda0dd'},
+        {num: '7', word: 'Seven', color: '#98d8c8'},
+        {num: '8', word: 'Eight', color: '#f7dc6f'},
+        {num: '9', word: 'Nine', color: '#bb8fce'},
+        {num: '10', word: 'Ten', color: '#82e0aa'}
+    ];
 
-// --- Init ---
-render();
+    // Colors data
+    const colors = [
+        {name: 'Red', hex: '#ff0000'},
+        {name: 'Blue', hex: '#0066ff'},
+        {name: 'Yellow', hex: '#ffff00'},
+        {name: 'Green', hex: '#00cc00'},
+        {name: 'Orange', hex: '#ff8800'},
+        {name: 'Purple', hex: '#8800ff'},
+        {name: 'Pink', hex: '#ff69b4'},
+        {name: 'Brown', hex: '#8b4513'},
+        {name: 'Black', hex: '#000000'},
+        {name: 'White', hex: '#ffffff'}
+    ];
+
+    function showTab(tabName) {
+        // Hide all content
+        document.querySelectorAll('.content').forEach(content => {
+            content.classList.remove('active');
+        });
+        
+        // Remove active class from all tabs
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.classList.remove('active');
+        });
+        
+        // Show selected content and activate tab
+        document.getElementById(tabName).classList.add('active');
+        document.querySelector(`.tab.${tabName}`).classList.add('active');
+        
+        playChord([523.25, 659.25, 783.99]); // C, E, G chord
+    }
+
+    function createLettersGrid() {
+        const grid = document.getElementById('lettersGrid');
+        letters.forEach(letterData => {
+            const item = document.createElement('div');
+            item.className = 'learning-item';
+            item.innerHTML = `
+                <div class="item-display" style="color: ${letterData.color}">${letterData.letter}</div>
+                <div class="item-label">${letterData.word}</div>
+            `;
+            item.onclick = () => selectLetter(letterData);
+            grid.appendChild(item);
+        });
+    }
+
+    function createNumbersGrid() {
+        const grid = document.getElementById('numbersGrid');
+        numbers.forEach(numberData => {
+            const item = document.createElement('div');
+            item.className = 'learning-item';
+            item.innerHTML = `
+                <div class="item-display" style="color: ${numberData.color}">${numberData.num}</div>
+                <div class="item-label">${numberData.word}</div>
+            `;
+            item.onclick = () => selectNumber(numberData);
+            grid.appendChild(item);
+        });
+    }
+
+    function createColorsGrid() {
+        const grid = document.getElementById('colorsGrid');
+        colors.forEach(colorData => {
+            const item = document.createElement('div');
+            item.className = 'learning-item';
+            // Add white border for white color visibility
+            const borderStyle = colorData.name === 'White' ? 'border: 4px solid #ccc;' : '';
+            item.innerHTML = `
+                <div class="color-item" style="background-color: ${colorData.hex}; ${borderStyle}"></div>
+                <div class="item-label">${colorData.name}</div>
+            `;
+            item.onclick = () => selectColor(colorData);
+            grid.appendChild(item);
+        });
+    }
+
+    function selectLetter(letterData) {
+        document.getElementById('currentLetter').textContent = letterData.letter;
+        document.getElementById('currentLetter').style.color = letterData.color;
+        document.getElementById('currentLetterLabel').textContent = `${letterData.letter} is for ${letterData.word}`;
+        
+        // Play a musical note based on letter position
+        const noteFreq = 261.63 + (letters.indexOf(letterData) * 20);
+        playTone(noteFreq, 600);
+        
+        // Speak the letter and word
+        setTimeout(() => {
+            speak(`${letterData.letter}. ${letterData.letter} is for ${letterData.word}`);
+        }, 200);
+    }
+
+    function selectNumber(numberData) {
+        document.getElementById('currentNumber').textContent = numberData.num;
+        document.getElementById('currentNumber').style.color = numberData.color;
+        document.getElementById('currentNumberLabel').textContent = numberData.word;
+        
+        // Play ascending notes for numbers
+        const baseFreq = 261.63;
+        const noteFreq = baseFreq * Math.pow(2, (parseInt(numberData.num) - 1) / 12);
+        playTone(noteFreq, 600);
+        
+        // Speak the number
+        setTimeout(() => {
+            speak(`${numberData.num}. ${numberData.word}`);
+        }, 200);
+    }
+
+    function selectColor(colorData) {
+        const colorDisplay = document.getElementById('currentColorDisplay');
+        colorDisplay.style.backgroundColor = colorData.hex;
+        // Add border for white color visibility in the main display too
+        if (colorData.name === 'White') {
+            colorDisplay.style.border = '6px solid #ccc';
+        } else {
+            colorDisplay.style.border = '6px solid white';
+        }
+        document.getElementById('currentColorLabel').textContent = colorData.name;
+        
+        // Play different tones for different colors
+        const colorFreqs = [440, 493.88, 523.25, 587.33, 659.25, 698.46, 783.99, 880, 987.77, 1046.50];
+        const colorIndex = colors.indexOf(colorData);
+        playTone(colorFreqs[colorIndex], 600);
+        
+        // Speak the color name
+        setTimeout(() => {
+            speak(colorData.name);
+        }, 200);
+    }
+
+    // Initialize the app
+    function init() {
+        createLettersGrid();
+        createNumbersGrid();
+        createColorsGrid();
+        
+        // Load speech synthesis voices
+        if ('speechSynthesis' in window) {
+            speechSynthesis.addEventListener('voiceschanged', () => {
+                // Voices are now loaded
+            });
+        }
+    }
+
+    // Start the app when page loads
+    window.addEventListener('load', init);
 </script>
+```
+
 </body>
 </html>
