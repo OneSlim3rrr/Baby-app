@@ -93,7 +93,7 @@ button[aria-pressed="true"] { background:var(--accent); color:#fff; }
 <nav>
   <div class="seg">
     <button data-mode="colors">Colors</button>
-    <button data-mode="letters">Letters</button>
+    <button data-mode="words">Words</button>
     <button data-mode="numbers">Numbers</button>
     <button data-mode="shapes">Shapes</button>
     <button data-mode="alphabet">Alphabet</button>
@@ -114,19 +114,31 @@ const COLORS=[{front:"Red",back:"🔴"},{front:"Blue",back:"🔵"},{front:"Green
 {front:”Purple”,back:”🟣”}
 {front:”White”,back:”⚪️”}
 {front:”Black”,back:”⚫️”];
-const LETTERS=[
-  {letter:"A",emoji:"🍎",word:"Apple"},{letter:"B",emoji:"🐻",word:"Bear"},{letter:"C",emoji:"🐱",word:"Cat"},
-  {letter:"D",emoji:"🐶",word:"Dog"},{letter:"E",emoji:"🥚",word:"Egg"},{letter:"F",emoji:"🐸",word:"Frog"},
-  {letter:"G",emoji:"🦒",word:"Giraffe"},{letter:"H",emoji:"🏠",word:"House"},{letter:"I",emoji:"🍦",word:"Ice Cream"},
-  {letter:"J",emoji:"🧃",word:"Juice"},{letter:"K",emoji:"🦘",word:"Kangaroo"},{letter:"L",emoji:"🦁",word:"Lion"},
-  {letter:"M",emoji:"🌝",word:"Moon"},{letter:"N",emoji:"🥜",word:"Nut"},{letter:"O",emoji:"🐙",word:"Octopus"},
-  {letter:"P",emoji:"🍕",word:"Pizza"},{letter:"Q",emoji:"👸",word:"Queen"},{letter:"R",emoji:"🌈",word:"Rainbow"},
-  {letter:"S",emoji:"⭐",word:"Star"},{letter:"T",emoji:"🌳",word:"Tree"},{letter:"U",emoji:"☂️",word:"Umbrella"},
-  {letter:"V",emoji:"🎻",word:"Violin"},{letter:"W",emoji:"🌊",word:"Water"},{letter:"X",emoji:"❌",word:"X-ray"},
-  {letter:"Y",emoji:"🛶",word:"Yacht"},{letter:"Z",emoji:"🦓",word:"Zebra"}
+const WORDS=[
+  {emoji:"🍎",word:"Apple"},{emoji:"🐻",word:"Bear"},{emoji:"🐱",word:"Cat"},
+  {emoji:"🐶",word:"Dog"},{emoji:"🥚",word:"Egg"},{emoji:"🐸",word:"Frog"},
+  {emoji:"🦒",word:"Giraffe"},{emoji:"🏠",word:"House"},{emoji:"🍦",word:"Ice Cream"},
+  {emoji:"🧃",word:"Juice"},{emoji:"🦘",word:"Kangaroo"},{emoji:"🦁",word:"Lion"},
+  {emoji:"🌝",word:"Moon"},{emoji:"🥷🏽",word:"Ninja"},{emoji:"🐙",word:"Octopus"},
+  {emoji:"🍕",word:"Pizza"},{emoji:"👸",word:"Queen"},{emoji:"🌈",word:"Rainbow"},
+  {emoji:"⭐",word:"Star"},{emoji:"🌳",word:"Tree"},{emoji:"☂️",word:"Umbrella"},
+  {emoji:"🎻",word:"Violin"},{emoji:"🌊",word:"Water"},{emoji:"❌",word:"X-ray"},
+  {emoji:"🛶",word:"Yacht"},{emoji:"🦓",word:"Zebra"}
 ];
-const NUMBERS=[{front:"1",back:"🍎"},{front:"2",back:"🐶"},{front:"3",back:"🌳"}];
-const SHAPES=[{front:"Circle",back:"⚪"},{front:"Square",back:"⬜"},{front:"Triangle",back:"🔺"}];
+const NUMBERS=[{front:"1"},
+{front:"2"},
+{front:"3"},
+{front:”4”},
+{front:”5”},
+{front:”6”},
+{front:”7”},
+{front:”8”}
+{front:”9”},
+{front:”10”}
+];
+const SHAPES=[{front:"Circle",back:"⚪"},{front:"Square",back:"⬜"},{front:"Triangle",back:"🔺"},
+{front:”Oval”,back:”🥚”},
+{front:”Diamond”,back:”🔷”}];
 const FAVORITES=[];
 let mode="colors", index=0, flipped=false, autoplay=null, muted=false;
 
@@ -139,7 +151,7 @@ let alphabetTimer=null, alphabetIndex=0;
 
 function deck(){
   return mode==="colors"?COLORS:
-         mode==="letters"?LETTERS:
+         mode==="words"?WORDS:
          mode==="numbers"?NUMBERS:
          mode==="shapes"?SHAPES:
          mode==="alphabet"?LETTERS:
