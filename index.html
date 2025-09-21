@@ -13,69 +13,53 @@
   <link rel="apple-touch-icon" href="icons/icon-192.png">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-</head>
-<body>
-  ...
-  <script>
-    // Register service worker
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('service-worker.js')
-        .then(() => console.log("Service Worker registered"))
-        .catch(err => console.log("SW fail:", err));
+
+  <style>
+    :root {
+      --bg: #f0f4f8;
+      --card: #ffffff;
+      --accent: #4CAF50;
     }
-  </script>
-</body>
+    body {
+      margin:0; font-family:sans-serif; background:var(--bg); display:flex; flex-direction:column; height:100vh;
+    }
+    header {
+      background:var(--accent); color:white; padding:10px; text-align:center;
+    }
+    main { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; }
+    .stage { flex:1; display:flex; align-items:center; justify-content:center; width:100%; perspective:1000px; }
+    .card {
+      width:80%; height:60%; position:relative; transform-style:preserve-3d; transition:transform 0.8s;
+    }
+    .card.flipped { transform:rotateY(180deg); }
+    .face {
+      position:absolute; width:100%; height:100%; backface-visibility:hidden; display:flex; flex-direction:column; align-items:center; justify-content:center;
+      border-radius:25px; background:var(--card); box-shadow:0 4px 8px rgba(0,0,0,0.2);
+    }
+    .back { transform:rotateY(180deg); }
+    .big-text { font-size:5rem; margin-bottom:10px; }
+    .sub { font-size:2rem; }
 
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Flashcards PWA</title>
-<link rel="manifest" href="manifest.webmanifest">
-<style>
-:root {
-  --bg: #f0f4f8;
-  --card: #ffffff;
-  --accent: #4CAF50;
-}
-body {
-  margin:0; font-family:sans-serif; background:var(--bg); display:flex; flex-direction:column; height:100vh;
-}
-header {
-  background:var(--accent); color:white; padding:10px; text-align:center;
-}
-main { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; }
-.stage { flex:1; display:flex; align-items:center; justify-content:center; width:100%; perspective:1000px; }
-.card {
-  width:80%; height:60%; position:relative; transform-style:preserve-3d; transition:transform 0.8s;
-}
-.card.flipped { transform:rotateY(180deg); }
-.face {
-  position:absolute; width:100%; height:100%; backface-visibility:hidden; display:flex; flex-direction:column; align-items:center; justify-content:center;
-  border-radius:25px; background:var(--card); box-shadow:0 4px 8px rgba(0,0,0,0.2);
-}
-.back { transform:rotateY(180deg); }
-.big-text { font-size:5rem; margin-bottom:10px; }
-.sub { font-size:2rem; }
+    nav { display:flex; justify-content:center; flex-wrap:wrap; margin:10px; gap:5px; }
+    button { padding:10px 15px; border:none; border-radius:8px; cursor:pointer; background:#ddd; }
+    button[aria-pressed="true"] { background:var(--accent); color:#fff; }
+    .seg button { margin:2px; }
 
-nav { display:flex; justify-content:center; flex-wrap:wrap; margin:10px; gap:5px; }
-button { padding:10px 15px; border:none; border-radius:8px; cursor:pointer; background:#ddd; }
-button[aria-pressed="true"] { background:var(--accent); color:#fff; }
-.seg button { margin:2px; }
-
-/* Alphabet grid */
-.alphabet-grid {
-  display:grid; grid-template-columns:repeat(auto-fill, minmax(120px,1fr));
-  gap:15px; padding:20px; width:100%; box-sizing:border-box;
-}
-.alphabet-tile {
-  background:#fff; border-radius:15px; box-shadow:0 4px 8px rgba(0,0,0,0.2);
-  text-align:center; padding:15px; font-size:2rem; cursor:pointer; transition:transform 0.2s ease;
-}
-.alphabet-tile:hover { transform:scale(1.05); }
-.alphabet-tile .letter { font-size:3rem; font-weight:bold; margin-bottom:5px; }
-.alphabet-tile .emoji { font-size:2rem; margin-bottom:5px; }
-.alphabet-tile .word { font-size:1.2rem; color:#444; }
-.highlight { border:3px solid var(--accent); }
-</style>
+    /* Alphabet grid */
+    .alphabet-grid {
+      display:grid; grid-template-columns:repeat(auto-fill, minmax(120px,1fr));
+      gap:15px; padding:20px; width:100%; box-sizing:border-box;
+    }
+    .alphabet-tile {
+      background:#fff; border-radius:15px; box-shadow:0 4px 8px rgba(0,0,0,0.2);
+      text-align:center; padding:15px; font-size:2rem; cursor:pointer; transition:transform 0.2s ease;
+    }
+    .alphabet-tile:hover { transform:scale(1.05); }
+    .alphabet-tile .letter { font-size:3rem; font-weight:bold; margin-bottom:5px; }
+    .alphabet-tile .emoji { font-size:2rem; margin-bottom:5px; }
+    .alphabet-tile .word { font-size:1.2rem; color:#444; }
+    .highlight { border:3px solid var(--accent); }
+  </style>
 </head>
 <body>
 <header>
@@ -108,12 +92,18 @@ button[aria-pressed="true"] { background:var(--accent); color:#fff; }
 </nav>
 
 <script>
-const COLORS=[{front:"Red",back:"🔴"},{front:"Blue",back:"🔵"},{front:"Green",back:"🟢"},{front:"Yellow",back:"🟡"}
-{front:”Orange”,back:”🟠”}
-{front:”Brown”,back:”🟤”}
-{front:”Purple”,back:”🟣”}
-{front:”White”,back:”⚪️”}
-{front:”Black”,back:”⚫️”];
+// --- Decks ---
+const COLORS=[
+  {front:"Red",back:"🔴"},
+  {front:"Blue",back:"🔵"},
+  {front:"Green",back:"🟢"},
+  {front:"Yellow",back:"🟡"},
+  {front:"Orange",back:"🟠"},
+  {front:"Brown",back:"🟤"},
+  {front:"Purple",back:"🟣"},
+  {front:"White",back:"⚪️"},
+  {front:"Black",back:"⚫️"}
+];
 const WORDS=[
   {emoji:"🍎",word:"Apple"},{emoji:"🐻",word:"Bear"},{emoji:"🐱",word:"Cat"},
   {emoji:"🐶",word:"Dog"},{emoji:"🥚",word:"Egg"},{emoji:"🐸",word:"Frog"},
@@ -125,30 +115,33 @@ const WORDS=[
   {emoji:"🎻",word:"Violin"},{emoji:"🌊",word:"Water"},{emoji:"❌",word:"X-ray"},
   {emoji:"🛶",word:"Yacht"},{emoji:"🦓",word:"Zebra"}
 ];
-const NUMBERS=[{front:"1"},
-{front:"2"},
-{front:"3"},
-{front:”4”},
-{front:”5”},
-{front:”6”},
-{front:”7”},
-{front:”8”}
-{front:”9”},
-{front:”10”}
+const NUMBERS=[
+  {front:"1",back:"1"},{front:"2",back:"2"},{front:"3",back:"3"},
+  {front:"4",back:"4"},{front:"5",back:"5"},{front:"6",back:"6"},
+  {front:"7",back:"7"},{front:"8",back:"8"},{front:"9",back:"9"},
+  {front:"10",back:"10"}
 ];
-const SHAPES=[{front:"Circle",back:"⚪"},{front:"Square",back:"⬜"},{front:"Triangle",back:"🔺"},
-{front:”Oval”,back:”🥚”},
-{front:”Diamond”,back:”🔷”}];
+const SHAPES=[
+  {front:"Circle",back:"⚪"},{front:"Square",back:"⬜"},{front:"Triangle",back:"🔺"},
+  {front:"Oval",back:"🥚"},{front:"Diamond",back:"🔷"}
+];
+const LETTERS=[
+  {letter:"A",emoji:"🍎",word:"Apple"},
+  {letter:"B",emoji:"🐻",word:"Bear"},
+  {letter:"C",emoji:"🐱",word:"Cat"},
+  // ... continue full alphabet
+];
 const FAVORITES=[];
-let mode="colors", index=0, flipped=false, autoplay=null, muted=false;
 
-// DOM
+// --- State ---
+let mode="colors", index=0, flipped=false, autoplay=null, muted=false;
 const card=document.getElementById("card"), front=document.getElementById("front"), back=document.getElementById("back");
 const appTitle=document.getElementById("appTitle"), alphabetGrid=document.getElementById("alphabetGrid");
 
 // Alphabet mode
 let alphabetTimer=null, alphabetIndex=0;
 
+// --- Helpers ---
 function deck(){
   return mode==="colors"?COLORS:
          mode==="words"?WORDS:
@@ -157,45 +150,33 @@ function deck(){
          mode==="alphabet"?LETTERS:
          FAVORITES;
 }
-
 function speak(text){
   if(muted) return;
   speechSynthesis.cancel();
   const utter=new SpeechSynthesisUtterance(text);
   speechSynthesis.speak(utter);
 }
-
 function render(){
   if(mode==="alphabet"){ renderAlphabetGrid(); return; }
   exitAlphabetGrid();
   const d=deck(); if(index>=d.length) index=0;
   const item=d[index];
   card.classList.toggle("flipped",flipped);
-  if(mode==="letters"){
-    appTitle.textContent="Flashcards: Letters";
-    front.innerHTML=`<div class="big-text">${item.letter}</div>`;
-    back.innerHTML=`<div class="emoji">${item.emoji}</div><div class="sub">${item.word}</div>`;
-  }else if(mode==="colors"){
-    appTitle.textContent="Flashcards: Colors";
-    front.innerHTML=`<div class="big-text">${item.front}</div>`;
-    back.innerHTML=`<div class="big-text">${item.back}</div>`;
-  }else if(mode==="numbers"){
-    appTitle.textContent="Flashcards: Numbers";
-    front.innerHTML=`<div class="big-text">${item.front}</div>`;
-    back.innerHTML=`<div class="big-text">${item.back}</div>`;
-  }else if(mode==="shapes"){
-    appTitle.textContent="Flashcards: Shapes";
-    front.innerHTML=`<div class="big-text">${item.front}</div>`;
-    back.innerHTML=`<div class="big-text">${item.back}</div>`;
-  }else if(mode==="favorites"){
-    appTitle.textContent="Flashcards: Favorites";
-    front.innerHTML=`<div class="big-text">${item.front}</div>`;
-    back.innerHTML=`<div class="big-text">${item.back}</div>`;
+
+  if(mode==="words"){
+    appTitle.textContent="Flashcards: Words";
+    front.innerHTML=`<div class="emoji">${item.emoji}</div>`;
+    back.innerHTML=`<div class="word">${item.word}</div>`;
+    speak(item.word);
+  }else{
+    appTitle.textContent="Flashcards: " + mode.charAt(0).toUpperCase()+mode.slice(1);
+    front.innerHTML=`<div class="big-text">${item.front||item.letter}</div>`;
+    back.innerHTML=`<div class="big-text">${item.back||item.word||""}</div>`;
+    speak(item.front||item.letter);
   }
-  speak(item.front||item.letter);
 }
 
-// Alphabet Grid
+// --- Alphabet Grid ---
 function renderAlphabetGrid(){
   appTitle.textContent="Flashcards: Alphabet Grid";
   document.querySelector(".stage").style.display="none";
@@ -232,7 +213,7 @@ function exitAlphabetGrid(){
   document.querySelector(".stage").style.display="flex";
 }
 
-// Events
+// --- Events ---
 document.querySelectorAll("[data-mode]").forEach(b=>b.onclick=()=>{
   mode=b.dataset.mode; index=0; flipped=false; render();
 });
@@ -254,7 +235,7 @@ document.addEventListener("touchend",e=>{
   if(Math.abs(dx)>50){ if(dx>0) index=(index-1+deck().length)%deck().length; else index=(index+1)%deck().length; render();}
 });
 
-// Start
+// --- Init ---
 render();
 </script>
 </body>
