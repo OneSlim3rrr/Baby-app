@@ -10,8 +10,11 @@
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+        .sound-indicator.show {
+            opacity: 1;
         }
 
+```
     body {
         font-family: Arial, sans-serif;
         background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 50%, #fecfef 100%);
@@ -206,8 +209,41 @@
         transition: opacity 0.3s ease;
     }
 
-    .sound-indicator.show {
-        opacity: 1;
+    .voice-selector {
+        position: fixed;
+        top: 80px;
+        right: 20px;
+        background: white;
+        padding: 15px;
+        border-radius: 10px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        z-index: 100;
+    }
+
+    .voice-selector select {
+        width: 200px;
+        padding: 8px;
+        border: 2px solid #ff6b6b;
+        border-radius: 5px;
+        font-size: 14px;
+    }
+
+    .voice-selector label {
+        display: block;
+        margin-bottom: 5px;
+        font-weight: bold;
+        color: #333;
+    }
+
+    .test-voice-btn {
+        margin-top: 8px;
+        padding: 6px 12px;
+        background: #4ecdc4;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 12px;
     }
 
     .start-overlay {
@@ -280,6 +316,14 @@
 ```
 <div class="sound-indicator" id="soundIndicator">Playing Sound! 🔊</div>
 
+<div class="voice-selector">
+    <label for="voiceSelect">Choose Voice:</label>
+    <select id="voiceSelect" onchange="changeVoice()">
+        <option value="">Default Voice</option>
+    </select>
+    <button class="test-voice-btn" onclick="testVoice()">Test Voice</button>
+</div>
+
 <div class="container">
     <div class="header">
         <h1>🌟 Baby Learning Fun! 🌟</h1>
@@ -322,11 +366,43 @@
     // Audio context for sound generation
     let audioContext;
     let speechEnabled = false;
+    let selectedVoice = null;
     
     function initAudio() {
         if (!audioContext) {
             audioContext = new (window.AudioContext || window.webkitAudioContext)();
         }
+    }
+
+    function populateVoices() {
+        const voices = speechSynthesis.getVoices();
+        const voiceSelect = document.getElementById('voiceSelect');
+        
+        // Clear existing options except the first one
+        voiceSelect.innerHTML = '<option value="">Default Voice</option>';
+        
+        // Add all available voices
+        voices.forEach((voice, index) => {
+            const option = document.createElement('option');
+            option.value = index;
+            option.textContent = `${voice.name} (${voice.lang})`;
+            voiceSelect.appendChild(option);
+        });
+    }
+
+    function changeVoice() {
+        const voiceSelect = document.getElementById('voiceSelect');
+        const voices = speechSynthesis.getVoices();
+        
+        if (voiceSelect.value === '') {
+            selectedVoice = null;
+        } else {
+            selectedVoice = voices[parseInt(voiceSelect.value)];
+        }
+    }
+
+    function testVoice() {
+        speak('Hello! one, two, three, red, blue, green.');
     }
 
     function speak(text) {
@@ -335,19 +411,46 @@
             speechSynthesis.cancel();
             
             const utterance = new SpeechSynthesisUtterance(text);
-            utterance.rate = 0.7; // Slower for babies
-            utterance.pitch = 1.2; // Higher pitch for children
-            utterance.volume = 0.8;
+            utterance.rate = 0.5; // Slower for babies
+            utterance.pitch = 1.5; // Higher pitch for children
+            utterance.volume = 1.0;
             
-            // Try to use a child-friendly voice if available
-            const voices = speechSynthesis.getVoices();
-            const preferredVoice = voices.find(voice => 
-                voice.name.includes('Google') || 
-                voice.name.includes('Microsoft') ||
-                voice.lang.includes('en')
-            );
-            if (preferredVoice) {
-                utterance.voice = preferredVoice;
+            // Use selected voice or find a good default
+            if (selectedVoice) {
+                utterance.voice = selectedVoice;
+            } else {
+                // Get all available voices
+                const voices = speechSynthesis.getVoices();
+                
+                // Try to find specific voices in order of preference
+                const preferredVoiceNames = [
+                    'Google US English', 
+                    'Microsoft Zira - English (United States)',
+                    'Alex', // macOS
+                    'Samantha', // macOS female
+                    'Karen', // macOS Australian
+                    'Moira', // macOS Irish
+                    'Tessa' // macOS South African
+                ];
+                
+                let defaultVoice = null;
+                
+                // First try to find a preferred voice by name
+                for (const voiceName of preferredVoiceNames) {
+                    defaultVoice = voices.find(voice => voice.name.includes(voiceName));
+                    if (defaultVoice) break;
+                }
+                
+                // If no preferred voice found, use any English voice
+                if (!defaultVoice) {
+                    defaultVoice = voices.find(voice => 
+                        voice.lang.startsWith('en') && voice.default
+                    ) || voices.find(voice => voice.lang.startsWith('en'));
+                }
+                
+                if (defaultVoice) {
+                    utterance.voice = defaultVoice;
+                }
             }
             
             speechSynthesis.speak(utterance);
@@ -363,7 +466,8 @@
         
         // Load voices for speech synthesis
         if ('speechSynthesis' in window) {
-            speechSynthesis.getVoices();
+            populateVoices();
+            speechSynthesis.addEventListener('voiceschanged', populateVoices);
         }
     }
 
@@ -508,10 +612,8 @@
         colors.forEach(colorData => {
             const item = document.createElement('div');
             item.className = 'learning-item';
-            // Add white border for white color visibility
-            const borderStyle = colorData.name === 'White' ? 'border: 4px solid #ccc;' : '';
             item.innerHTML = `
-                <div class="color-item" style="background-color: ${colorData.hex}; ${borderStyle}"></div>
+                <div class="color-item" style="background-color: ${colorData.hex}"></div>
                 <div class="item-label">${colorData.name}</div>
             `;
             item.onclick = () => selectColor(colorData);
@@ -553,23 +655,12 @@
     function selectColor(colorData) {
         const colorDisplay = document.getElementById('currentColorDisplay');
         colorDisplay.style.backgroundColor = colorData.hex;
-        // Add border for white color visibility in the main display too
-        if (colorData.name === 'White') {
-            colorDisplay.style.border = '6px solid #ccc';
-        } else {
-            colorDisplay.style.border = '6px solid white';
-        }
         document.getElementById('currentColorLabel').textContent = colorData.name;
         
         // Play different tones for different colors
         const colorFreqs = [440, 493.88, 523.25, 587.33, 659.25, 698.46, 783.99, 880, 987.77, 1046.50];
         const colorIndex = colors.indexOf(colorData);
         playTone(colorFreqs[colorIndex], 600);
-        
-        // Speak the color name
-        setTimeout(() => {
-            speak(colorData.name);
-        }, 200);
     }
 
     // Initialize the app
@@ -580,16 +671,14 @@
         
         // Load speech synthesis voices
         if ('speechSynthesis' in window) {
-            speechSynthesis.addEventListener('voiceschanged', () => {
-                // Voices are now loaded
-            });
+            populateVoices();
+            speechSynthesis.addEventListener('voiceschanged', populateVoices);
         }
     }
 
     // Start the app when page loads
     window.addEventListener('load', init);
 </script>
-```
 
 </body>
 </html>
