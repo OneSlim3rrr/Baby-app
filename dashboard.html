@@ -3,10 +3,11 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Your Learning Dashboard</title>
+  <title>Learning Dashboard</title>
+  <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-  <div id="dashboard"></div>
+  <div class="container" id="dashboard"></div>
 
   <script>
     const profiles = JSON.parse(localStorage.getItem('profiles')) || [];
@@ -17,28 +18,38 @@
       window.location.href = 'index.html';
     }
 
-    document.getElementById('dashboard').innerHTML = `
-      <h1>Welcome, ${profile.name}!</h1>
-      <p>Progress: ${profile.progress}%</p>
-      <button onclick="increaseProgress()">Complete Lesson</button>
-      <button onclick="logout()">Switch User</button>
-    `;
+    function updateDisplay() {
+      document.getElementById('dashboard').innerHTML = `
+        <h1>Hi, ${profile.name}! 🌟</h1>
+        <p>Your progress: <strong>${profile.progress}%</strong></p>
 
-    function increaseProgress() {
+        <div class="buttons">
+          <button onclick="completeLesson()">Complete Lesson</button>
+          <button onclick="resetProgress()">Reset Progress</button>
+          <button onclick="logout()">Switch User</button>
+        </div>
+      `;
+    }
+
+    function completeLesson() {
       profile.progress = Math.min((profile.progress || 0) + 10, 100);
       profiles[activeIndex] = profile;
       localStorage.setItem('profiles', JSON.stringify(profiles));
-      document.getElementById('dashboard').innerHTML = `
-        <h1>Welcome, ${profile.name}!</h1>
-        <p>Progress: ${profile.progress}%</p>
-        <button onclick="increaseProgress()">Complete Lesson</button>
-        <button onclick="logout()">Switch User</button>
-      `;
+      updateDisplay();
+    }
+
+    function resetProgress() {
+      profile.progress = 0;
+      profiles[activeIndex] = profile;
+      localStorage.setItem('profiles', JSON.stringify(profiles));
+      updateDisplay();
     }
 
     function logout() {
       window.location.href = 'index.html';
     }
+
+    updateDisplay();
   </script>
 </body>
 </html>
