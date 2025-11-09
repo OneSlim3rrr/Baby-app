@@ -3,129 +3,49 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Toddler Flashcards – PWA</title>
-  <link rel="manifest" href="manifest.webmanifest" />
-  <style>
-    body {
-      font-family: sans-serif;
-      margin: 0;
-      padding: 0;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      background: #fdfdfd;
-      color: #333;
-    }
-    header {
-      background: #4a90e2;
-      color: white;
-      width: 100%;
-      padding: 1rem;
-      text-align: center;
-      font-size: 1.5rem;
-    }
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-      gap: 15px;
-      width: 95%;
-      max-width: 800px;
-      margin: 1rem 0;
-    }
-    .card {
-      background: #fff;
-      border-radius: 12px;
-      padding: 10px;
-      text-align: center;
-      font-size: 1.2rem;
-      font-weight: bold;
-      cursor: pointer;
-      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-      transition: transform 0.2s;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: space-between;
-    }
-    .card:hover {
-      transform: scale(1.05);
-      background: #f0f8ff;
-    }
-    .card img {
-      width: 100%;
-      max-width: 120px;
-      height: 120px;
-      object-fit: cover;
-      border-radius: 8px;
-      margin: 8px 0;
-    }
-    .word {
-      font-size: 1rem;
-      color: #666;
-    }
-  </style>
+  <title>Welcome! 👋</title>
+  <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-  <header>Toddler Flashcards</header>
-  <div class="grid" id="alphabetGrid"></div>
+  <div class="splash">
+    <h1>Welcome Back!</h1>
+    <div id="profiles"></div>
+
+    <input id="Name" placeholder="Enter name" />
+    <button onclick="addProfile()">Add Profile</button>
+  </div>
 
   <script>
-    const alphabet = [
-      { letter: "A", word: "Apple", img: "https://picsum.photos/seed/apple/200" },
-      { letter: "B", word: "Ball", img: "https://picsum.photos/seed/ball/200" },
-      { letter: "C", word: "Cat", img: "https://picsum.photos/seed/cat/200" },
-      { letter: "D", word: "Dog", img: "https://picsum.photos/seed/dog/200" },
-      { letter: "E", word: "Elephant", img: "https://picsum.photos/seed/elephant/200" },
-      { letter: "F", word: "Fish", img: "https://picsum.photos/seed/fish/200" },
-      { letter: "G", word: "Grapes", img: "https://picsum.photos/seed/grapes/200" },
-      { letter: "H", word: "Hat", img: "https://picsum.photos/seed/hat/200" },
-      { letter: "I", word: "Ice Cream", img: "https://picsum.photos/seed/icecream/200" },
-      { letter: "J", word: "Juice", img: "https://picsum.photos/seed/juice/200" },
-      { letter: "K", word: "Kite", img: "https://picsum.photos/seed/kite/200" },
-      { letter: "L", word: "Lion", img: "https://picsum.photos/seed/lion/200" },
-      { letter: "M", word: "Monkey", img: "https://picsum.photos/seed/monkey/200" },
-      { letter: "N", word: "Nest", img: "https://picsum.photos/seed/nest/200" },
-      { letter: "O", word: "Orange", img: "https://picsum.photos/seed/orange/200" },
-      { letter: "P", word: "Panda", img: "https://picsum.photos/seed/panda/200" },
-      { letter: "Q", word: "Queen", img: "https://picsum.photos/seed/queen/200" },
-      { letter: "R", word: "Rabbit", img: "https://picsum.photos/seed/rabbit/200" },
-      { letter: "S", word: "Sun", img: "https://picsum.photos/seed/sun/200" },
-      { letter: "T", word: "Tiger", img: "https://picsum.photos/seed/tiger/200" },
-      { letter: "U", word: "Umbrella", img: "https://picsum.photos/seed/umbrella/200" },
-      { letter: "V", word: "Violin", img: "https://picsum.photos/seed/violin/200" },
-      { letter: "W", word: "Whale", img: "https://picsum.photos/seed/whale/200" },
-      { letter: "X", word: "Xylophone", img: "https://picsum.photos/seed/xylophone/200" },
-      { letter: "Y", word: "Yak", img: "https://picsum.photos/seed/yak/200" },
-      { letter: "Z", word: "Zebra", img: "https://picsum.photos/seed/zebra/200" }
-    ];
+    const profilesDiv = document.getElementById('profiles');
+    let profiles = JSON.parse(localStorage.getItem('profiles')) || [];
 
-    const grid = document.getElementById("alphabetGrid");
-
-    alphabet.forEach((item) => {
-      const card = document.createElement("div");
-      card.className = "card";
-      card.innerHTML = `
-        <div class="letter">${item.letter}</div>
-        <img src="${item.img}" alt="${item.word}">
-        <div class="word">${item.word}</div>
-      `;
-      card.onclick = () => speak(`${item.letter}, ${item.word}`);
-      grid.appendChild(card);
-    });
-
-    function speak(text) {
-      const utterance = new SpeechSynthesisUtterance(text);
-      utterance.lang = "en-US";
-      speechSynthesis.cancel();
-      speechSynthesis.speak(utterance);
+    function renderProfiles() {
+      profilesDiv.innerHTML = profiles
+        .map(
+          (p, i) => `
+            <div class="profile-card" onclick="openProfile(${i})">
+              <h3>${p.name}</h3>
+              <p>Progress: ${p.progress || 0}%</p>
+            </div>`
+        )
+        .join('');
     }
 
-    // Auto read every 5 seconds
-    let i = 0;
-    setInterval(() => {
-      speak(`${alphabet[i].letter}, ${alphabet[i].word}`);
-      i = (i + 1) % alphabet.length;
-    }, 5000);
+    function addProfile() {
+      const name = document.getElementById('Name').value.trim();
+      if (!name) return;
+      profiles.push({ name, progress: 0 });
+      localStorage.setItem('profiles', JSON.stringify(profiles));
+      renderProfiles();
+      document.getElementById('Name').value = '';
+    }
+
+    function openProfile(index) {
+      localStorage.setItem('activeProfile', index);
+      window.location.href = 'dashboard.html';
+    }
+
+    renderProfiles();
   </script>
 </body>
 </html>
