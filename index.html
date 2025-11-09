@@ -3,16 +3,20 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Welcome! 👋</title>
+  <title>Welcome to Learning Time! 👋</title>
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-  <div class="splash">
-    <h1>Welcome Back!</h1>
-    <div id="profiles"></div>
+  <div class="container">
+    <h1>Welcome to Learning Time! 👶</h1>
+    <p>Choose your profile or create a new one:</p>
 
-    <input id="Name" placeholder="Enter name" />
-    <button onclick="addProfile()">Add Profile</button>
+    <div id="profiles" class="profile-list"></div>
+
+    <div class="new-profile">
+      <input id="newName" placeholder="Enter your name" />
+      <button onclick="addProfile()">Add Profile</button>
+    </div>
   </div>
 
   <script>
@@ -20,6 +24,11 @@
     let profiles = JSON.parse(localStorage.getItem('profiles')) || [];
 
     function renderProfiles() {
+      if (profiles.length === 0) {
+        profilesDiv.innerHTML = `<p>No profiles yet — add one below!</p>`;
+        return;
+      }
+
       profilesDiv.innerHTML = profiles
         .map(
           (p, i) => `
@@ -32,12 +41,12 @@
     }
 
     function addProfile() {
-      const name = document.getElementById('Name').value.trim();
-      if (!name) return;
+      const name = document.getElementById('newName').value.trim();
+      if (!name) return alert('Please enter a name.');
       profiles.push({ name, progress: 0 });
       localStorage.setItem('profiles', JSON.stringify(profiles));
       renderProfiles();
-      document.getElementById('Name').value = '';
+      document.getElementById('newName').value = '';
     }
 
     function openProfile(index) {
