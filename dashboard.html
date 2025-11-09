@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Your Learning Dashboard</title>
+</head>
+<body>
+  <div id="dashboard"></div>
+
+  <script>
+    const profiles = JSON.parse(localStorage.getItem('profiles')) || [];
+    const activeIndex = localStorage.getItem('activeProfile');
+    const profile = profiles[activeIndex];
+
+    if (!profile) {
+      window.location.href = 'index.html';
+    }
+
+    document.getElementById('dashboard').innerHTML = `
+      <h1>Welcome, ${profile.name}!</h1>
+      <p>Progress: ${profile.progress}%</p>
+      <button onclick="increaseProgress()">Complete Lesson</button>
+      <button onclick="logout()">Switch User</button>
+    `;
+
+    function increaseProgress() {
+      profile.progress = Math.min((profile.progress || 0) + 10, 100);
+      profiles[activeIndex] = profile;
+      localStorage.setItem('profiles', JSON.stringify(profiles));
+      document.getElementById('dashboard').innerHTML = `
+        <h1>Welcome, ${profile.name}!</h1>
+        <p>Progress: ${profile.progress}%</p>
+        <button onclick="increaseProgress()">Complete Lesson</button>
+        <button onclick="logout()">Switch User</button>
+      `;
+    }
+
+    function logout() {
+      window.location.href = 'index.html';
+    }
+  </script>
+</body>
+</html>
