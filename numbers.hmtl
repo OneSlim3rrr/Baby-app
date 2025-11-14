@@ -21,7 +21,13 @@
     <br><a href="dashboard.html" class="menu-btn">⬅ Back</a>
   </div>
 
-  <script>
+  <script>// Auto progress +10% when visiting
+const profiles=JSON.parse(localStorage.getItem('profiles'))||[];
+const i=localStorage.getItem('activeProfile');
+if(profiles[i]){
+  profiles[i].progress=Math.min((profiles[i].progress||0)+10,100);
+  localStorage.setItem('profiles',JSON.stringify(profiles));
+}
     const nums=document.getElementById('nums');
     for(let n=0;n<=20;n++){
       nums.innerHTML += `<div class="number-box" onclick="say(${n})">${n}</div>`;
